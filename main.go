@@ -11,8 +11,11 @@ import (
 
 const THREADS = 6
 
-// aaaa
- const myhash = "61be55a8e2f6b4e172338bddf184d6dbee29c98853e0a0485ecee7f27b9af0b4"
+ //aaaa
+ // const myhash = "61be55a8e2f6b4e172338bddf184d6dbee29c98853e0a0485ecee7f27b9af0b4"
+
+// 300th line
+const myhash = "257d84791c8008f78b93f0170a4ae15222fb28fd9ae60fc9d8ec0acddfa356a0"
 
 // aaabażur
 //const myhash = "83a82bdd5761c7e6f963c53293770928913539cac3f204af25585e491f9ff1a2"
@@ -23,17 +26,18 @@ const THREADS = 6
 var wg sync.WaitGroup
 var shutdown bool
 
-func calculate(lines []string, t_number int) {
+func calculate(lines []string, stat *int) {
 	defer wg.Done()
-	// l := len(lines)
 
-	hasher := sha256.New()
 	for _, line := range lines {
-		//fmt.Printf("----THREAD %d----\n\\___%d/%d\n\n", t_number, idx, l)
+    *stat++
 		for _, line2 := range lines {
 			if shutdown {
 				return
 			}
+
+
+	    hasher := sha256.New()
 			concat := fmt.Sprintf("%s%s", line, line2)
 			hasher.Write([]byte(concat))
 
@@ -92,15 +96,23 @@ func main() {
 	// 	fmt.Printf("%d: %v\n", idx+1, slc[idx])
 	// }
 
-	answers := ""
 
 	start := time.Now()
 	shutdown = false
+  status := make([]int, THREADS);
+
 	for idx := range thread_slices {
 		wg.Add(1)
-		go calculate(thread_slices[idx], idx+1)
+		go calculate(thread_slices[idx], &status[idx]);
 	}
-	println(answers)
+
+  for !shutdown{
+    for idx := range thread_slices{
+      fmt.Printf("------------------\n");
+      fmt.Printf("%d: %d/%d\n", idx + 1, status[idx], lines_per_thread);
+    }
+    time.Sleep(time.Second)
+  }
 
 	wg.Wait()
 	elapsed := time.Since(start)
